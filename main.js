@@ -138,12 +138,14 @@ var TaskViewPlugin = class extends import_obsidian.Plugin {
     });
   }
   async createTask(title, config, dueDate, projectSlug) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     let projectId = null;
+    let legacyProjectSlug = null;
     const effectiveProject = projectSlug != null ? projectSlug : config.project;
     if (effectiveProject) {
       const project = (await this.projects()).find((item) => item.slug === effectiveProject || item.name.toLowerCase() === effectiveProject.toLowerCase());
       projectId = (_a = project == null ? void 0 : project.id) != null ? _a : null;
+      legacyProjectSlug = (_b = project == null ? void 0 : project.slug) != null ? _b : null;
     }
     await this.request("/rest/v1/tasks", {
       method: "POST",
@@ -151,10 +153,10 @@ var TaskViewPlugin = class extends import_obsidian.Plugin {
       body: JSON.stringify({
         user_id: this.settings.userId,
         title,
-        completed: (_b = config.completed) != null ? _b : false,
-        priority: (_c = config.priority) != null ? _c : null,
+        completed: (_c = config.completed) != null ? _c : false,
+        priority: (_d = config.priority) != null ? _d : null,
         project_id: projectId,
-        project: effectiveProject != null ? effectiveProject : null,
+        project: legacyProjectSlug,
         due_date: dueDate != null ? dueDate : null
       })
     });
@@ -218,7 +220,7 @@ var TaskViewRenderChild = class extends import_obsidian.MarkdownRenderChild {
     });
   }
   async renderComposer() {
-    var _a;
+    var _a, _b;
     const form = this.containerEl.createEl("form", { cls: "task-view__composer" });
     const editor = form.createDiv({ cls: "task-view__composer-editor" });
     const chips = editor.createDiv({ cls: "task-view__chips" });
@@ -232,7 +234,12 @@ var TaskViewRenderChild = class extends import_obsidian.MarkdownRenderChild {
       projects = (await this.plugin.projects()).filter((item) => item.status === "Doing" || item.status === "On Hold");
     } catch (e) {
     }
-    let selectedProject = (_a = this.config.project) != null ? _a : "";
+    let selectedProject = (_b = (_a = projects.find(
+      (item) => {
+        var _a2;
+        return item.slug === this.config.project || item.name.toLowerCase() === ((_a2 = this.config.project) == null ? void 0 : _a2.toLowerCase());
+      }
+    )) == null ? void 0 : _a.slug) != null ? _b : "";
     let confirmedDate = "";
     let highlightedProject = 0;
     const renderChips = () => {

@@ -165,10 +165,12 @@ export default class TaskViewPlugin extends Plugin {
 
   async createTask(title: string, config: ViewConfig, dueDate?: string, projectSlug?: string) {
     let projectId: string | null = null;
+    let legacyProjectSlug: string | null = null;
     const effectiveProject = projectSlug ?? config.project;
     if (effectiveProject) {
       const project = (await this.projects()).find((item) => item.slug === effectiveProject || item.name.toLowerCase() === effectiveProject.toLowerCase());
       projectId = project?.id ?? null;
+      legacyProjectSlug = project?.slug ?? null;
     }
     await this.request("/rest/v1/tasks", {
       method: "POST",
@@ -179,7 +181,7 @@ export default class TaskViewPlugin extends Plugin {
         completed: config.completed ?? false,
         priority: config.priority ?? null,
         project_id: projectId,
-        project: effectiveProject ?? null,
+        project: legacyProjectSlug,
         due_date: dueDate ?? null,
       }),
     });
@@ -246,7 +248,9 @@ class TaskViewRenderChild extends MarkdownRenderChild {
     let projects: ProjectRow[] = [];
     try { projects = (await this.plugin.projects()).filter((item) => item.status === "Doing" || item.status === "On Hold"); }
     catch { /* The composer still works without project suggestions. */ }
-    let selectedProject = this.config.project ?? "";
+    let selectedProject = projects.find(
+      (item) => item.slug === this.config.project || item.name.toLowerCase() === this.config.project?.toLowerCase(),
+    )?.slug ?? "";
     let confirmedDate = "";
     let highlightedProject = 0;
 
