@@ -36,9 +36,6 @@
 .task-view__completed-field { align-items: center; color: var(--text-normal) !important; display: flex; gap: 6px; }
 .task-view__modal-actions { display: flex; justify-content: space-between; margin-top: 18px; }
 .task-view-date-modal { max-width: 340px; width: calc(100vw - 32px); }
-@media (min-width: 700px) {
-  .task-view-date-modal { transform: translateX(clamp(80px, 16vw, 240px)); }
-}
 .task-view-date-modal__task { color: var(--text-muted); font-size: var(--font-ui-small); margin: -8px 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .task-view-date-modal__options { border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 8px; }
 .task-view-date-modal__option { align-items: center; background: transparent; border: 0; border-radius: 7px; box-shadow: none; color: var(--text-normal); display: flex; gap: 10px; padding: 8px 9px; text-align: left; width: 100%; }

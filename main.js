@@ -231,7 +231,7 @@ var TaskViewRenderChild = class extends import_obsidian.MarkdownRenderChild {
     body.addEventListener("click", () => new TaskEditModal(this.plugin.app, this.plugin, task, projects, () => void this.render()).open());
     const schedule = row.createEl("button", { cls: "task-view__schedule", attr: { "aria-label": `Reschedule ${task.title}` } });
     (0, import_obsidian.setIcon)(schedule, "calendar-days");
-    schedule.addEventListener("click", () => new QuickDateModal(this.plugin.app, task, async (dueDate) => {
+    schedule.addEventListener("click", () => new QuickDateModal(this.plugin.app, task, schedule.getBoundingClientRect(), async (dueDate) => {
       await this.plugin.updateTask(task.id, { due_date: dueDate });
       await this.render();
     }).open());
@@ -398,9 +398,10 @@ var TaskViewRenderChild = class extends import_obsidian.MarkdownRenderChild {
   }
 };
 var QuickDateModal = class extends import_obsidian.Modal {
-  constructor(app, task, onChoose) {
+  constructor(app, task, anchor, onChoose) {
     super(app);
     this.task = task;
+    this.anchor = anchor;
     this.onChoose = onChoose;
   }
   onOpen() {
@@ -434,6 +435,19 @@ var QuickDateModal = class extends import_obsidian.Modal {
     input.addEventListener("change", () => {
       if (input.value) void this.choose(input.value, input);
     });
+    window.requestAnimationFrame(() => this.positionNearAnchor());
+  }
+  positionNearAnchor() {
+    if (window.innerWidth < 700) return;
+    const edge = 12;
+    const right = Math.max(edge, window.innerWidth - this.anchor.right);
+    const preferredTop = this.anchor.top - 88;
+    const maxTop = window.innerHeight - this.modalEl.offsetHeight - edge;
+    this.modalEl.style.position = "fixed";
+    this.modalEl.style.right = `${right}px`;
+    this.modalEl.style.left = "auto";
+    this.modalEl.style.top = `${Math.max(edge, Math.min(preferredTop, maxTop))}px`;
+    this.modalEl.style.transform = "none";
   }
   async choose(dueDate, control) {
     control.disabled = true;
