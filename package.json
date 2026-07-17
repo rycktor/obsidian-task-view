@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-task-view",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/main.ts --bundle --external:obsidian --format=cjs --platform=browser --target=es2018 --outfile=main.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "esbuild": "^0.25.0",
+    "obsidian": "^1.8.7",
+    "typescript": "^5.8.0"
+  }
+}
