@@ -16,8 +16,8 @@ copying plugin files.
 
 ````markdown
 ```task-view
-title: Innofood priorities
-project: innofood
+title: Ristrutturazione casa
+project: ristrutturazione-casa
 completed: false
 priority: 1
 due: upcoming
