@@ -9,6 +9,9 @@
 .task-view__row:first-child { border-top: 0; }
 .task-view__task-title { line-height: 1.35; }
 .task-view__task-body { cursor: pointer; min-width: 0; }
+.task-view__schedule { align-items: center; background: transparent; border: 0; border-radius: 6px; box-shadow: none; color: var(--text-muted); display: flex; height: 30px; justify-content: center; margin: -3px -4px 0 0; padding: 6px; width: 30px; }
+.task-view__schedule:hover { background: var(--background-modifier-hover); color: var(--interactive-accent); }
+.task-view__schedule svg { height: 17px; width: 17px; }
 .task-view__title-line { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; }
 .task-view__project-badge { background: color-mix(in srgb, var(--interactive-accent) 14%, transparent); border-radius: 999px; color: var(--interactive-accent); font-size: var(--font-ui-smaller); line-height: 1; padding: 4px 7px; }
 .task-view__description { color: var(--text-muted); font-size: var(--font-ui-small); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -32,3 +35,14 @@
 .task-view-modal-grid input:not([type="checkbox"]), .task-view-modal-grid select, .task-view-modal-grid textarea { margin-top: 4px; width: 100%; }
 .task-view__completed-field { align-items: center; color: var(--text-normal) !important; display: flex; gap: 6px; }
 .task-view__modal-actions { display: flex; justify-content: space-between; margin-top: 18px; }
+.task-view-date-modal { max-width: 340px; width: calc(100vw - 32px); }
+.task-view-date-modal__task { color: var(--text-muted); font-size: var(--font-ui-small); margin: -8px 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task-view-date-modal__options { border-bottom: 1px solid var(--background-modifier-border); padding-bottom: 8px; }
+.task-view-date-modal__option { align-items: center; background: transparent; border: 0; border-radius: 7px; box-shadow: none; color: var(--text-normal); display: flex; gap: 10px; padding: 8px 9px; text-align: left; width: 100%; }
+.task-view-date-modal__option:hover { background: var(--background-modifier-hover); }
+.task-view-date-modal__icon { color: var(--interactive-accent); display: flex; }
+.task-view-date-modal__icon svg { height: 18px; width: 18px; }
+.task-view-date-modal__label { font-weight: 500; }
+.task-view-date-modal__detail { color: var(--text-muted); font-size: var(--font-ui-small); margin-left: auto; }
+.task-view-date-modal__custom { color: var(--text-muted); display: block; font-size: var(--font-ui-small); padding-top: 12px; }
+.task-view-date-modal__custom input { margin-top: 5px; width: 100%; }

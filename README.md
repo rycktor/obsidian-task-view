@@ -50,3 +50,10 @@ Pressing Enter with confirmed chips creates the task without removing them.
 Project names are shown as compact badges beside task titles. Click a task row
 to edit its title, description, project, due date, priority, and completion
 status, or to soft-delete it.
+
+## Quick reschedule
+
+Click the calendar icon at the far right of any task to change its due date
+without opening the full task editor. The compact dialog offers Today,
+Tomorrow, Monday, Next weekend, No date, and a native date picker. Changes are
+saved immediately to Supabase.

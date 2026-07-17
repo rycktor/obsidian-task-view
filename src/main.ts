@@ -9,6 +9,7 @@ import {
   PluginSettingTab,
   Setting,
   parseYaml,
+  setIcon,
 } from "obsidian";
 
 type Priority = 1 | 2 | 3;
@@ -254,6 +255,12 @@ class TaskViewRenderChild extends MarkdownRenderChild {
     const metadata = [task.due_date, task.priority ? priorityLabel(task.priority) : ""].filter(Boolean).join(" · ");
     if (metadata) body.createDiv({ cls: `task-view__meta task-view__priority-${task.priority ?? 3}`, text: metadata });
     body.addEventListener("click", () => new TaskEditModal(this.plugin.app, this.plugin, task, projects, () => void this.render()).open());
+    const schedule = row.createEl("button", { cls: "task-view__schedule", attr: { "aria-label": `Reschedule ${task.title}` } });
+    setIcon(schedule, "calendar-days");
+    schedule.addEventListener("click", () => new QuickDateModal(this.plugin.app, task, async (dueDate) => {
+      await this.plugin.updateTask(task.id, { due_date: dueDate });
+      await this.render();
+    }).open());
     checkbox.addEventListener("change", async () => {
       checkbox.disabled = true;
       try { await this.plugin.updateTask(task.id, { completed: checkbox.checked }); await this.render(); }
@@ -380,6 +387,54 @@ class TaskViewRenderChild extends MarkdownRenderChild {
       catch (error) { new Notice(String(error)); input.disabled = false; }
     });
   }
+}
+
+class QuickDateModal extends Modal {
+  constructor(app: App, private task: TaskRow, private onChoose: (dueDate: string | null) => Promise<void>) { super(app); }
+
+  onOpen() {
+    this.modalEl.addClass("task-view-date-modal");
+    this.setTitle("Reschedule task");
+    this.contentEl.createDiv({ cls: "task-view-date-modal__task", text: this.task.title });
+    const options = this.contentEl.createDiv({ cls: "task-view-date-modal__options" });
+    const quickDates = [
+      { label: "Today", detail: shortWeekday(localDate()), date: localDate(), icon: "calendar-check" },
+      { label: "Tomorrow", detail: shortWeekday(relativeDate(1)), date: relativeDate(1), icon: "sun" },
+      { label: "Monday", detail: compactDate(nextWeekday(1)), date: nextWeekday(1), icon: "arrow-right" },
+      { label: "Next weekend", detail: compactDate(nextWeekday(6)), date: nextWeekday(6), icon: "armchair" },
+    ];
+    for (const option of quickDates) {
+      const button = options.createEl("button", { cls: "task-view-date-modal__option" });
+      const icon = button.createSpan({ cls: "task-view-date-modal__icon" });
+      setIcon(icon, option.icon);
+      button.createSpan({ cls: "task-view-date-modal__label", text: option.label });
+      button.createSpan({ cls: "task-view-date-modal__detail", text: option.detail });
+      button.addEventListener("click", () => void this.choose(option.date, button));
+    }
+    const noDate = options.createEl("button", { cls: "task-view-date-modal__option" });
+    const noDateIcon = noDate.createSpan({ cls: "task-view-date-modal__icon" });
+    setIcon(noDateIcon, "calendar-x");
+    noDate.createSpan({ cls: "task-view-date-modal__label", text: "No date" });
+    noDate.addEventListener("click", () => void this.choose(null, noDate));
+
+    const custom = this.contentEl.createEl("label", { cls: "task-view-date-modal__custom", text: "Choose a date" });
+    const input = custom.createEl("input", { type: "date" });
+    input.value = this.task.due_date ?? "";
+    input.addEventListener("change", () => { if (input.value) void this.choose(input.value, input); });
+  }
+
+  async choose(dueDate: string | null, control: HTMLButtonElement | HTMLInputElement) {
+    control.disabled = true;
+    try {
+      await this.onChoose(dueDate);
+      this.close();
+    } catch (error) {
+      new Notice(error instanceof Error ? error.message : "Unable to update the due date.");
+      control.disabled = false;
+    }
+  }
+
+  onClose() { this.contentEl.empty(); }
 }
 
 class TaskEditModal extends Modal {
@@ -592,6 +647,27 @@ function modalInput(container: HTMLElement, label: string, type: "text" | "date"
 function localDate() {
   const now = new Date();
   return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
+function relativeDate(days: number) {
+  const result = new Date();
+  result.setDate(result.getDate() + days);
+  return dateFrom(result);
+}
+
+function nextWeekday(targetDay: number) {
+  const result = new Date();
+  const delta = (targetDay - result.getDay() + 7) % 7 || 7;
+  result.setDate(result.getDate() + delta);
+  return dateFrom(result);
+}
+
+function shortWeekday(date: string) {
+  return new Intl.DateTimeFormat("en-GB", { weekday: "short" }).format(new Date(`${date}T12:00:00`));
+}
+
+function compactDate(date: string) {
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(new Date(`${date}T12:00:00`));
 }
 
 interface DateSuggestion { date: string; title: string; }
