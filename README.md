@@ -22,9 +22,14 @@ completed: false
 priority: 1
 due: upcoming
 sort: due_date
+group: project
 limit: 100
 ```
 ````
+
+Set `group` to `project` or `due_date` to divide one view into sections. Due-date
+groups use Overdue, Today, Tomorrow, individual future dates, and No due date.
+Omit `group` for the original flat list.
 
 Supported `due` values: `today`, `overdue`, `upcoming`, `no-date`. Omit a filter to include every value.
 

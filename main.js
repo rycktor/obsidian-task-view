@@ -186,10 +186,33 @@ var TaskViewRenderChild = class extends import_obsidian.MarkdownRenderChild {
     try {
       const [tasks, projects] = await Promise.all([this.plugin.tasks(this.config), this.plugin.projects()]);
       if (!tasks.length) list.createDiv({ cls: "task-view__empty", text: "No tasks in this view." });
-      for (const task of tasks) this.renderTask(list, task, projects);
+      else if (this.config.group) this.renderGroups(list, tasks, projects, this.config.group);
+      else for (const task of tasks) this.renderTask(list, task, projects);
       await this.renderComposer();
     } catch (error) {
       list.createDiv({ cls: "task-view__error", text: error instanceof Error ? error.message : "Unable to load tasks." });
+    }
+  }
+  renderGroups(list, tasks, projects, groupBy) {
+    const groups = /* @__PURE__ */ new Map();
+    for (const task of tasks) {
+      const group = groupBy === "project" ? projectGroup(task, projects) : dueDateGroup(task);
+      const existing = groups.get(group.key);
+      if (existing) existing.tasks.push(task);
+      else groups.set(group.key, { label: group.label, tasks: [task] });
+    }
+    const orderedGroups = [...groups.entries()];
+    if (groupBy === "project") orderedGroups.sort(([keyA, a], [keyB, b]) => {
+      if (keyA === "project:none") return 1;
+      if (keyB === "project:none") return -1;
+      return a.label.localeCompare(b.label, void 0, { sensitivity: "base" });
+    });
+    for (const [, group] of orderedGroups) {
+      const section = list.createDiv({ cls: "task-view__group" });
+      const heading = section.createDiv({ cls: "task-view__group-heading" });
+      heading.createSpan({ text: group.label });
+      heading.createSpan({ cls: "task-view__group-count", text: String(group.tasks.length) });
+      for (const task of group.tasks) this.renderTask(section, task, projects);
     }
   }
   renderTask(list, task, projects) {
@@ -509,6 +532,10 @@ var InsertViewModal = class extends import_obsidian.Modal {
     priority.add(new Option("High", "1"));
     priority.add(new Option("Medium", "2"));
     priority.add(new Option("Low", "3"));
+    const group = field(grid, "Group by", "select");
+    group.add(new Option("None", ""));
+    group.add(new Option("Project", "project"));
+    group.add(new Option("Due date", "due_date"));
     const insert = this.contentEl.createEl("button", { text: "Insert view" });
     insert.addEventListener("click", () => {
       const lines = ["```task-view"];
@@ -517,6 +544,7 @@ var InsertViewModal = class extends import_obsidian.Modal {
       lines.push(`completed: ${status.value}`);
       if (due.value !== "any") lines.push(`due: ${due.value}`);
       if (priority.value) lines.push(`priority: ${priority.value}`);
+      if (group.value) lines.push(`group: ${group.value}`);
       lines.push("sort: due_date", "```");
       const cursor = this.editor.getCursor();
       const fencesBeforeCursor = this.editor.getRange({ line: 0, ch: 0 }, cursor).split("\n").filter((line) => /^\s*```/.test(line)).length;
@@ -567,12 +595,31 @@ function parseConfig(source) {
       completed: typeof value.completed === "boolean" ? value.completed : String(value.completed) === "true",
       priority: [1, 2, 3].includes(Number(value.priority)) ? Number(value.priority) : void 0,
       due: ["today", "overdue", "upcoming", "no-date"].includes(String(value.due)) ? value.due : "any",
+      group: ["project", "due_date"].includes(String(value.group)) ? value.group : void 0,
       sort: ["due_date", "created_at", "updated_at"].includes(String(value.sort)) ? value.sort : "due_date",
       limit: Number.isFinite(Number(value.limit)) ? Math.min(Math.max(Number(value.limit), 1), 500) : 100
     };
   } catch (e) {
     return {};
   }
+}
+function projectGroup(task, projects) {
+  const project = projects.find((item) => item.id === task.project_id);
+  return project ? { key: `project:${project.id}`, label: project.name } : { key: "project:none", label: "No project" };
+}
+function dueDateGroup(task) {
+  if (!task.due_date) return { key: "due:none", label: "No due date" };
+  const today = localDate();
+  const tomorrowDate = /* @__PURE__ */ new Date(`${today}T12:00:00`);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+  const tomorrow = dateFrom(tomorrowDate);
+  if (task.due_date < today) return { key: "due:overdue", label: "Overdue" };
+  if (task.due_date === today) return { key: "due:today", label: "Today" };
+  if (task.due_date === tomorrow) return { key: "due:tomorrow", label: "Tomorrow" };
+  return {
+    key: `due:${task.due_date}`,
+    label: new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(/* @__PURE__ */ new Date(`${task.due_date}T12:00:00`))
+  };
 }
 function field(container, label, type) {
   const wrapper = container.createEl("label", { text: label });

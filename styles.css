@@ -2,6 +2,9 @@
 .task-view__header { align-items: center; background: var(--background-secondary); display: flex; justify-content: space-between; padding: 10px 12px; }
 .task-view__title { font-size: var(--font-ui-medium); font-weight: 600; }
 .task-view__list { display: flex; flex-direction: column; }
+.task-view__group + .task-view__group { border-top: 1px solid var(--background-modifier-border); }
+.task-view__group-heading { align-items: center; background: var(--background-secondary-alt); color: var(--text-muted); display: flex; font-size: var(--font-ui-small); font-weight: 600; gap: 7px; padding: 8px 12px; }
+.task-view__group-count { background: var(--background-modifier-hover); border-radius: 999px; font-size: var(--font-ui-smaller); font-weight: 500; line-height: 1; padding: 3px 6px; }
 .task-view__row { align-items: flex-start; border-top: 1px solid var(--background-modifier-border); display: grid; gap: 8px; grid-template-columns: auto 1fr auto; padding: 10px 12px; }
 .task-view__row:first-child { border-top: 0; }
 .task-view__task-title { line-height: 1.35; }

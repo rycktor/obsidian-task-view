@@ -1,7 +1,7 @@
 {
   "id": "riccardo-task-view",
   "name": "Task View",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "minAppVersion": "1.5.0",
   "description": "Linked Supabase task views inside Obsidian notes.",
   "author": "Riccardo",
