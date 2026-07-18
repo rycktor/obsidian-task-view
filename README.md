@@ -35,6 +35,16 @@ Supported `due` values: `today`, `overdue`, `upcoming`, `no-date`. Omit a filter
 
 Use the command **Task View: Insert linked task view** to create a view with a form. Configure the Supabase URL and public key in Obsidian settings, then log in with the existing task-webapp account.
 
+To filter a project note using its own filename, use:
+
+````markdown
+```task-view
+project: "{{title}}"
+```
+````
+
+The plugin resolves the current note name even when `{{title}}` is left literal by the template engine, and removes a leading `P - ` or `P_`. For example, both `P - Luminair.md` and `P_Luminair.md` resolve to the project `Luminair`.
+
 The plugin stores Supabase access and refresh tokens in its local Obsidian plugin data. It never stores the password and must never be configured with a service-role key.
 
 ## Quick add

@@ -40,7 +40,9 @@ var TaskViewPlugin = class extends import_obsidian.Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
     this.addSettingTab(new TaskViewSettingTab(this.app, this));
     this.registerMarkdownCodeBlockProcessor("task-view", (source, el, ctx) => {
-      const child = new TaskViewRenderChild(el, this, parseConfig(source));
+      const config = parseConfig(source);
+      config.project = resolveProjectName(config.project, ctx.sourcePath);
+      const child = new TaskViewRenderChild(el, this, config);
       ctx.addChild(child);
     });
     this.addCommand({
@@ -674,6 +676,13 @@ function parseConfig(source) {
   } catch (e) {
     return {};
   }
+}
+function resolveProjectName(configuredProject, sourcePath) {
+  var _a;
+  const fileName = (_a = sourcePath.split("/").pop()) == null ? void 0 : _a.replace(/\.md$/i, "");
+  const sourceName = configuredProject === "@note" || configuredProject === "{{title}}" ? fileName : configuredProject;
+  const projectName = sourceName == null ? void 0 : sourceName.replace(/^P(?:\s*-\s*|_)/i, "").trim();
+  return projectName || void 0;
 }
 function projectGroup(task, projects) {
   const project = projects.find((item) => item.id === task.project_id);

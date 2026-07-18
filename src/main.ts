@@ -66,7 +66,9 @@ export default class TaskViewPlugin extends Plugin {
     this.addSettingTab(new TaskViewSettingTab(this.app, this));
 
     this.registerMarkdownCodeBlockProcessor("task-view", (source, el, ctx) => {
-      const child = new TaskViewRenderChild(el, this, parseConfig(source));
+      const config = parseConfig(source);
+      config.project = resolveProjectName(config.project, ctx.sourcePath);
+      const child = new TaskViewRenderChild(el, this, config);
       ctx.addChild(child);
     });
 
@@ -624,6 +626,15 @@ function parseConfig(source: string): ViewConfig {
       limit: Number.isFinite(Number(value.limit)) ? Math.min(Math.max(Number(value.limit), 1), 500) : 100,
     };
   } catch { return {}; }
+}
+
+function resolveProjectName(configuredProject: string | undefined, sourcePath: string): string | undefined {
+  const fileName = sourcePath.split("/").pop()?.replace(/\.md$/i, "");
+  const sourceName = configuredProject === "@note" || configuredProject === "{{title}}"
+    ? fileName
+    : configuredProject;
+  const projectName = sourceName?.replace(/^P(?:\s*-\s*|_)/i, "").trim();
+  return projectName || undefined;
 }
 
 function projectGroup(task: TaskRow, projects: ProjectRow[]) {
